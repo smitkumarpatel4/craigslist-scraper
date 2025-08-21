@@ -41,6 +41,9 @@ async function scrapeJobDescription(listings, page) {
     await sleep(5000);
     const html = await page.content();    
     const $ = cheerio.load(html);
+    const jobDescription = $("#postingbody").text();
+    listing.jobDescription = jobDescription;
+    console.log(listing.jobDescription);
   }
 }
 
@@ -48,7 +51,7 @@ async function sleep(milliSeconds) {
   return new Promise((resolve) => setTimeout(resolve, milliSeconds));
 }
 
-async function main() {
+async function Main() {
   const browser = await puppeteer.launch({ headless: false });
   const page = await browser.newPage();
   const listings = await scrapeCraigslist(page);
@@ -57,4 +60,4 @@ async function main() {
   console.log(listings);
 }
 
-main();
+Main();
