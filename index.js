@@ -13,31 +13,48 @@ const scrapingResults = [
   },
 ];
 
-async function Main() {
-  const browser = await puppeteer.launch({ headless: false });
-  const page = await browser.newPage();
+async function scrapeCraigslist(page) {
   await page.goto("https://sfbay.craigslist.org/search/sof");
-
-  // Wait for the page to load
-  await new Promise((resolve) => setTimeout(resolve, 5000));
-
+  await sleep(5000);
   const html = await page.content();
   const $ = cheerio.load(html);
 
-  // Try to find job listings with a broader selector
-  // $('a[href*="/sof/"]').map((index, element) => {
-  const results = $(".cl-search-result")
+  const listings = $(".cl-search-result")
     .map((index, element) => {
       const title = $(element).find(".posting-title .label").text().trim();
-      const url = $(element).find(".posting-title").attr("href");
-      const timeElement = $(element).find(".meta span[title]");
-      const datePosted = new Date(timeElement.attr("title") );
-      return { title, url, datePosted };
+      const url = $(element).find(".posting-title").attr("href").trim();
+      const datePosted = new Date(
+        $(element).find(".meta span[title]").attr("title")
+      );
+      const neighborhood = $(element).find(".meta").first().text().trim(); // JQuery Selector not working
+      const compensation = $(element).find(".meta .salary-meta").text().trim(); // JQuery Selector not working
+      return { title, url, datePosted, neighborhood, compensation };
     })
     .get();
-
-  console.log(results);
-  //await browser.close();
+  console.log(listings);
+  return listings;
 }
 
-Main();
+async function scrapeJobDescription(listings, page) {
+  for (const listing of listings) {
+    await page.goto(listing.url);
+    await sleep(5000);
+    const html = await page.content();    
+    const $ = cheerio.load(html);
+  }
+}
+
+async function sleep(milliSeconds) {
+  return new Promise((resolve) => setTimeout(resolve, milliSeconds));
+}
+
+async function main() {
+  const browser = await puppeteer.launch({ headless: false });
+  const page = await browser.newPage();
+  const listings = await scrapeCraigslist(page);
+  const listingsWithJobDescription = await scrapeJobDescription(listings ,page);
+
+  console.log(listings);
+}
+
+main();
