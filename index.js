@@ -23,16 +23,19 @@ async function Main() {
 
   const html = await page.content();
   const $ = cheerio.load(html);
-  const results = [];
 
   // Try to find job listings with a broader selector
-  $('a[href*="/sof/"]').each((index, element) => {
-    const title = $(element).text().trim();
-    const url = $(element).attr("href");
-    //console.log(title);
-    //console.log(url);
-    results.push({ title, url });
-  });
+  // $('a[href*="/sof/"]').map((index, element) => {
+  const results = $(".cl-search-result")
+    .map((index, element) => {
+      const title = $(element).find(".posting-title .label").text().trim();
+      const url = $(element).find(".posting-title").attr("href");
+      const timeElement = $(element).find(".meta span[title]");
+      const datePosted = new Date(timeElement.attr("title") );
+      return { title, url, datePosted };
+    })
+    .get();
+
   console.log(results);
   //await browser.close();
 }
