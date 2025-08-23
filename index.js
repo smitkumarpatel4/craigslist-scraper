@@ -1,5 +1,6 @@
 const puppeteer = require("puppeteer");
 const cheerio = require("cheerio");
+const ObjectsToCsv = require("objects-to-csv");
 
 const scrapingResults = [
   {
@@ -51,13 +52,23 @@ async function sleep(milliSeconds) {
   return new Promise((resolve) => setTimeout(resolve, milliSeconds));
 }
 
+async function createCsvFile(listings) {
+  const csv = new ObjectsToCsv(listings);
+  await csv.toDisk("./listings.csv");
+}
+
 async function Main() {
   const browser = await puppeteer.launch({ headless: false });
   const page = await browser.newPage();
   const listings = await scrapeCraigslist(page);
-  const listingsWithJobDescription = await scrapeJobDescription(listings ,page);
+  
+  // Skip job description scraping for speed
+  // const listingsWithJobDescription = await scrapeJobDescription(listings, page);
 
-  console.log(listings);
+  //Downlaod to csv file
+  await createCsvFile(listings);
+  await browser.close();
+
 }
 
 Main();

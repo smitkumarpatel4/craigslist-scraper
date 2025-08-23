@@ -61,20 +61,6 @@ jspm_packages/
 ehthumbs.db
 Thumbs.db
 
-# Scraper specific files
-scraped-data/
-*.json
-div-analysis.json
-screenshots/
-logs/
-temp/
-cache/
-
-# Puppeteer browser downloads
-.local-chromium/
-
-# Scraping results and exports
-results/
-exports/
-data/
+# Generated CSV files (optional - remove if you want to track them)
+# listings.csv
 

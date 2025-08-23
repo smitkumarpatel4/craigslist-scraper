@@ -1,129 +1,153 @@
-# Craigslist Job Scraper
+# Craigslist Scraper
 
-A Node.js web scraper that extracts job listings from Craigslist's software jobs section using Puppeteer and Cheerio.
+A web scraper for Craigslist job listings built with Node.js, Puppeteer, and Cheerio. Extracts job information and exports to CSV format.
 
 ## Features
 
-- Scrapes software job listings from Craigslist SF Bay Area
-- Extracts comprehensive job data: titles, URLs, salaries, dates, and locations
-- Uses Puppeteer for dynamic content loading
-- Handles JavaScript-rendered content
-- Supports custom CSS selectors for data extraction
-- Includes debugging tools for selector testing
+- **Web Scraping**: Uses Puppeteer to scrape Craigslist software engineering job listings
+- **Data Extraction**: Extracts title, URL, date posted, neighborhood, and compensation
+- **CSV Export**: Automatically saves scraped data to a CSV file
+- **Fast Processing**: Optimized to scrape listings quickly without individual job descriptions
 
 ## Installation
 
-1. Clone the repository:
-```bash
-git clone <your-repo-url>
-cd craigslist-scraper
-```
-
-2. Install dependencies:
 ```bash
 npm install
 ```
 
+## Dependencies
+
+- **puppeteer**: Browser automation for web scraping
+- **cheerio**: HTML parsing and manipulation
+- **objects-to-csv**: CSV file generation and export
+
 ## Usage
 
-Run the scraper:
+### Basic Scraping (Fast Mode)
+
 ```bash
 node index.js
 ```
 
-The scraper will:
-- Open a browser window (non-headless mode)
-- Navigate to Craigslist software jobs
-- Wait for content to load
-- Extract job data using CSS selectors
-- Display results in console
+This will:
+1. Open a browser window
+2. Navigate to Craigslist software engineering jobs
+3. Extract listing information
+4. Save data to `listings.csv`
+5. Close the browser
 
-## Data Extraction
+### Output
 
-The scraper extracts the following data from each job listing:
-
-- **Job Title**: `.cl-search-result .posting-title .label`
-- **Job URL**: `.cl-search-result .posting-title` (href attribute)
-- **Salary**: `.cl-search-result .meta .salary-meta`
-- **Date Posted**: `.cl-search-result .meta span[title]` (title attribute)
-- **Location**: Parsed from `.cl-search-result .meta` text content
-
-## CSS Selectors Reference
-
-### Primary Selectors
-```javascript
-// Job title
-$('.cl-search-result .posting-title .label')
-
-// Job URL
-$('.cl-search-result .posting-title').attr('href')
-
-// Salary
-$('.cl-search-result .meta .salary-meta')
-
-// Date posted
-$('.cl-search-result .meta span[title]').attr('title')
-
-// Location
-$('.cl-search-result .meta').text().trim()
-```
-
-### Alternative Selectors
-```javascript
-// Alternative salary selectors
-$('.cl-search-result .meta .result-price')
-$('.cl-search-result .meta span[class*="salary"]')
-
-// All job listings
-$('.cl-search-result')
-```
-
-## Dependencies
-
-- `puppeteer`: Browser automation and dynamic content handling
-- `cheerio`: HTML parsing and CSS selector support
+The scraper creates a `listings.csv` file with the following columns:
+- `title`: Job title
+- `url`: Direct link to the job posting
+- `datePosted`: Date when the job was posted
+- `neighborhood`: Location/neighborhood information
+- `compensation`: Salary/compensation details
 
 ## Project Structure
 
 ```
 craigslist-scraper/
-├── index.js          # Main scraper script
-├── package.json      # Project dependencies
-├── .gitignore        # Git ignore rules
-└── README.md         # Project documentation
+├── index.js              # Main scraping logic
+├── package.json          # Dependencies and scripts
+├── listings.csv          # Generated CSV file (after running)
+└── README.md             # This file
 ```
 
-## Development
+## Scraping Functions
 
-### Debugging Selectors
-The scraper includes debugging functionality to test CSS selectors:
-- Test individual selectors
-- Compare alternative selectors
-- Validate data extraction
+### `scrapeCraigslist(page)`
+- Navigates to Craigslist software engineering jobs
+- Extracts basic listing information
+- Returns array of job objects
 
-### Customization
-- Modify selectors in `index.js` to target different data fields
-- Adjust wait times for different page load speeds
-- Change target URL for different Craigslist sections
+### `scrapeJobDescription(listings, page)` (Optional)
+- Visits each individual job posting
+- Extracts full job descriptions
+- **Note**: Currently disabled for speed
 
-## Notes
+### `createCsvFile(listings)`
+- Converts scraped data to CSV format
+- Saves to `listings.csv` file
 
-- The scraper includes a 5-second wait to allow JavaScript content to load
-- Browser runs in non-headless mode for debugging
-- Results are logged to console in JSON format
-- CSS selectors are based on Craigslist's current HTML structure
+## Sample Output
+
+```csv
+title,url,datePosted,neighborhood,compensation
+"Data Engineer [Remote]","https://sfbay.craigslist.org/pen/sof/d/redwood-city-data-engineer-remote/7874859703.html","2025-08-19T14:04:00.000Z","8/19130K",""
+"Machine Vision Engineer","https://sfbay.craigslist.org/sby/sof/d/cupertino-machine-vision-engineer/7874789268.html","2025-08-19T01:47:09.000Z","8/18Competitive package including base sala...OPT Machine Vision Inc",""
+```
+
+## Configuration
+
+### Target URL
+Currently scrapes: `https://sfbay.craigslist.org/search/sof`
+
+### Wait Times
+- Page load wait: 5 seconds
+- Individual job description wait: 5 seconds (when enabled)
+
+## Performance
+
+- **Fast Mode**: ~30 seconds for 20+ listings
+- **Full Mode**: ~2-3 minutes per listing (when job descriptions enabled)
 
 ## Troubleshooting
 
 ### Common Issues
-- **Empty salary field**: Check if `.salary-meta` class exists in current HTML
-- **Missing data**: Verify CSS selectors match current page structure
-- **Slow loading**: Increase wait time in the script
 
-### Selector Debugging
-Use browser developer tools to:
-1. Inspect job listing elements
-2. Copy CSS selectors
-3. Test selectors in console
-4. Update selectors in code as needed
+1. **Browser not opening**: Make sure you have Chrome/Chromium installed
+2. **No data extracted**: Check if Craigslist structure has changed
+3. **CSV file not created**: Ensure write permissions in the directory
+
+### Error Handling
+
+The scraper includes basic error handling for:
+- Network timeouts
+- Missing elements
+- Invalid dates
+
+## Development
+
+### Adding New Fields
+
+To extract additional data, modify the `scrapeCraigslist` function:
+
+```javascript
+const listings = $(".cl-search-result")
+  .map((index, element) => {
+    // Add new field extraction here
+    const newField = $(element).find(".new-selector").text().trim();
+    return { 
+      title, 
+      url, 
+      datePosted, 
+      neighborhood, 
+      compensation,
+      newField  // Add to return object
+    };
+  })
+  .get();
+```
+
+### Changing Target Category
+
+To scrape different job categories, modify the URL in `scrapeCraigslist`:
+
+```javascript
+await page.goto("https://sfbay.craigslist.org/search/YOUR_CATEGORY");
+```
+
+## License
+
+ISC
+
+## Contributing
+
+1. Fork the repository
+2. Create a feature branch
+3. Make your changes
+4. Test thoroughly
+5. Submit a pull request
 
